@@ -1,0 +1,65 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Deploy EC2 Instance inside custom VPC
+
+Parameters:
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: Name of an existing EC2 KeyPair to enable SSH access
+
+  InstanceType:
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t2.micro
+      - t3.micro
+      - t3.small
+      - t3.medium
+    Description: EC2 instance type
+
+Resources:
+  # Import existing VPC/Subnet/SG from Network Stack
+  MyVPC:
+    Type: AWS::EC2::VPC::Id
+  MySubnet:
+    Type: AWS::EC2::Subnet::Id
+
+  # Security Group for EC2
+  MyInstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable SSH and HTTP
+      VpcId: !Ref MyVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: MyEC2SG
+
+  # EC2 Instance
+  MyEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      ImageId: ami-0f58b397bc5c1f2e8  # Ubuntu 22.04 LTS (update for your region)
+      SubnetId: !Ref MySubnet
+      SecurityGroupIds:
+        - !Ref MyInstanceSecurityGroup
+      Tags:
+        - Key: Name
+          Value: MyEC2Instance
+
+Outputs:
+  InstanceId:
+    Description: EC2 Instance ID
+    Value: !Ref MyEC2Instance
+  PublicIP:
+    Description: Public IP of EC2 Instance
+    Value: !GetAtt MyEC2Instance.PublicIp

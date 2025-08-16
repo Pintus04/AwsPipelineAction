@@ -1,0 +1,42 @@
+name: AWS Network Deployment + EC2 Deploy + S3 Bucket Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-network:
+    name: Deploy VPC and Networking
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-1   # Change your AWS region
+
+      - name: Deploy CloudFormation Stack
+        run: |
+          aws cloudformation deploy \
+            --template-file aws-network-deploy.yml \
+            --stack-name my-network-stack \
+            --capabilities CAPABILITY_NAMED_IAM
+
+      - name: Deploy EC2 Instance
+        run: |
+          aws cloudformation deploy \
+            --template-file aws-ec2-deploy.yml \
+            --stack-name my-ec2-stack \
+            --capabilities CAPABILITY_NAMED_IAM
+
+      - name: Deploy S3 Bucket
+        run: |
+          aws cloudformation deploy \
+            --template-file aws-s3-deploy.yml \
+            --stack-name my-s3-stack

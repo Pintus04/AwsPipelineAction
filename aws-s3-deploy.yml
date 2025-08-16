@@ -1,0 +1,34 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Create a private S3 bucket
+
+Parameters:
+  BucketName:
+    Type: String
+    Description: Unique S3 bucket name
+    AllowedPattern: "^[a-z0-9.-]+$"
+    ConstraintDescription: Bucket name must be lowercase, numbers, dots, or hyphens.
+
+Resources:
+  MyPrivateBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref BucketName
+      AccessControl: Private
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+      Tags:
+        - Key: Name
+          Value: MyPrivateBucket
+
+Outputs:
+  BucketNameOutput:
+    Description: Name of the created S3 bucket
+    Value: !Ref MyPrivateBucket
+  BucketArnOutput:
+    Description: ARN of the created S3 bucket
+    Value: !GetAtt MyPrivateBucket.Arn
